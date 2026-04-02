@@ -1,0 +1,15 @@
+outdoor_activity:
+  tool_sequence_accuracy: 0.85
+  max_latency_p95: 10.0
+  pass_at_k: 8
+
+langgraph_react:
+  tool_selection_accuracy: 0.90
+  response_coherence_accuracy: 0.75
+  max_latency_p95: 8.0
+  pass_at_k: 8
+
+agentic_rag:
+  tool_selection_accuracy: 0.85
+  max_latency_p95: 12.0
+  pass_at_k: 8

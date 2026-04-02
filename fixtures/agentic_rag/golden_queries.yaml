@@ -1,0 +1,35 @@
+# Golden dataset for Agentic RAG agent evals.
+#
+# The RAG agent uses a retriever tool to search a vector store
+# (Milvus via LlamaStack). The workflow is:
+#   receive query -> decide -> retrieve -> generate
+#
+# Queries are designed around the knowledge domain of the
+# agentic-starter-kits documentation stored in the vector DB.
+
+queries:
+  # --- Knowledge retrieval queries (should trigger retriever) ---
+  - query: "How do I deploy a model using Llama Stack?"
+    expected_tools: ["retriever"]
+    expected_elements: ["llama stack", "deploy"]
+    difficulty: easy
+    category: knowledge
+
+  - query: "What is the architecture of the LangGraph React agent?"
+    expected_tools: ["retriever"]
+    expected_elements: ["langgraph"]
+    difficulty: medium
+    category: knowledge
+
+  - query: "What are the differences between the CrewAI and AutoGen agent implementations?"
+    expected_tools: ["retriever"]
+    expected_elements: ["agent"]
+    difficulty: hard
+    category: knowledge
+
+  # --- Greeting (should NOT trigger retriever) ---
+  - query: "Hello"
+    expected_tools: []
+    expected_elements: []
+    difficulty: easy
+    category: greeting
