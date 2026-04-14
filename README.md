@@ -62,9 +62,18 @@ agentic-starter-kits/
 │   │   └── mcp_agent/               # AutoGen + MCP (SSE)
 │   └── langflow/
 │       └── simple_tool_calling_agent/ # Langflow tool-calling agent
+├── tests/
+│   └── behavioral/                  # Behavioral eval suite (shared infra)
+│       ├── conftest.py              # Root fixtures (agent_url, run_eval, etc.)
+│       ├── harness/                 # Eval harness (runner, scorers, MLflow client)
+│       ├── api_contract/            # Cross-agent API contract tests
+│       ├── adversarial/             # Cross-agent safety & injection tests
+│       ├── fixtures/                # Shared test data (injection payloads)
+│       └── configs/                 # Threshold definitions per agent
 ├── charts/
 │   └── agent/                       # Shared Helm chart for all agents
 ├── docs/                            # Guides: local dev, deployment, contributing
+├── pyproject.toml                   # Test deps & pytest config
 └── README.md
 ```
 
@@ -104,11 +113,33 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ---
 
+## Behavioral Tests
+
+Behavioral eval suite that tests agents over HTTP against their shared OpenAI-compatible API. Tests are organized by capability so they apply to any agent.
+
+Tests require a running agent. Set the target URL via environment variables:
+
+| Env var | Test scope |
+|---------|------------|
+| `AGENT_URL` | Cross-agent tests (api_contract, adversarial) |
+| `REACT_AGENT_URL` | LangGraph ReAct agent tests |
+| `VANILLA_PYTHON_AGENT_URL` | Vanilla Python agent tests |
+
+```bash
+pip install -e ".[test]"
+AGENT_URL=https://my-agent.example.com pytest tests/behavioral/ -v
+```
+
+See `tests/behavioral/` for full details.
+
+---
+
 ## Documentation
 
 - [Local Development](./docs/local-development.md) — Ollama + Llama Stack setup
 - [OpenShift Deployment](./docs/openshift-deployment.md) — Helm-based deployment guide
 - [Adding a New Agent](./docs/adding-a-new-agent.md) — How to contribute a new agent template
+- [Adding Behavioral Tests](./docs/adding-behavioral-tests.md) — How to add test coverage for an agent
 
 ## Additional Resources
 
