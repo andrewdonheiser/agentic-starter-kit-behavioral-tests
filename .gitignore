@@ -14,4 +14,3 @@ venv/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
-BTESTNOTES.md

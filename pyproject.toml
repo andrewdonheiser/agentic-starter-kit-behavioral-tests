@@ -30,13 +30,9 @@ markers = [
     "api_contract: FastAPI endpoint schema, validation, streaming (tests repo code)",
     "adversarial: Agent-level security/safety tests (PII, API keys, dangerous ops)",
     "model_baseline: Model-level tests (prompt injection resistance) - not agent-specific",
-    "vanilla_python: Vanilla Python OpenAI Responses agent (search_price + search_reviews)",
     "slow: Tests that run multiple iterations (pass@k, repeated queries)",
 ]
 
-[tool.setuptools.packages.find]
-include = ["harness*", "evalhub_adapter*"]
-
 [build-system]
 requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools.backends._legacy:_Backend"
