@@ -125,7 +125,7 @@ def score_tool_call_validity(result: EvalResult) -> Score:
     for tc in result.tool_calls:
         args = tc.get("arguments")
         if args is None:
-            pass  # None is valid for parameterless tools
+            invalid.append({"tool": tc["name"], "reason": "missing arguments"})
         elif isinstance(args, str):
             try:
                 json.loads(args)

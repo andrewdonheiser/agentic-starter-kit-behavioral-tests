@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import logging
 import sys
 import time
 from dataclasses import dataclass, field
@@ -14,8 +13,6 @@ from typing import Any
 
 import httpx
 import yaml
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -46,18 +43,13 @@ class EvalResult:
 
 def _parse_tool_call(tc: dict[str, Any]) -> dict[str, Any]:
     """Parse a single tool call dict into normalized {name, arguments} form."""
-    fn = tc.get("function") or {}
-    if not isinstance(fn, dict):
-        fn = {}
+    fn = tc.get("function", {})
     name = fn.get("name", "")
-    raw_args = fn.get("arguments")
-    if raw_args is None:
-        args = None
-    else:
-        try:
-            args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
-        except json.JSONDecodeError:
-            args = {"_raw": raw_args}
+    raw_args = fn.get("arguments", "{}")
+    try:
+        args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
+    except json.JSONDecodeError:
+        args = {"_raw": raw_args}
     return {"name": name, "arguments": args}
 
 
@@ -133,7 +125,6 @@ async def _run_streaming(
             try:
                 chunk = json.loads(data_str)
             except json.JSONDecodeError:
-                logger.warning("Malformed SSE chunk (not valid JSON): %s", data_str[:200])
                 continue
 
             if not model_name:
@@ -155,11 +146,10 @@ async def _run_streaming(
                     fn = tc.get("function", {})
                     if "name" in fn:
                         collected_tool_calls[idx]["function"]["name"] = fn["name"]
-                    if "arguments" in fn and fn["arguments"] is not None:
-                        arg_chunk = fn["arguments"]
-                        collected_tool_calls[idx]["function"]["arguments"] += (
-                            arg_chunk if isinstance(arg_chunk, str) else json.dumps(arg_chunk)
-                        )
+                    if "arguments" in fn:
+                        collected_tool_calls[idx]["function"]["arguments"] += fn[
+                            "arguments"
+                        ]
 
     # Reconstruct a non-streaming-style response dict
     message: dict[str, Any] = {"role": "assistant", "content": collected_content}
@@ -238,17 +228,6 @@ async def run_task(
             success=False,
             error=f"HTTP {exc.response.status_code}: {exc.response.text[:500]}",
         )
-    except (json.JSONDecodeError, ValueError) as exc:
-        latency = time.monotonic() - start
-        return EvalResult(
-            response="",
-            tool_calls=[],
-            latency_seconds=latency,
-            tokens_used=None,
-            raw_response={"error": str(exc)},
-            success=False,
-            error=f"Invalid JSON from agent response: {str(exc)[:200]}",
-        )
     except (httpx.RequestError, TimeoutError) as exc:
         latency = time.monotonic() - start
         return EvalResult(
@@ -267,8 +246,8 @@ async def run_task(
 
 def _load_tasks_from_config(config_path: str) -> list[TaskConfig]:
     """Load task configs from a YAML file."""
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    with open(config_path) as f:
+        data = yaml.safe_load(f)
 
     tasks: list[TaskConfig] = []
     for task_data in data.get("tasks", []):

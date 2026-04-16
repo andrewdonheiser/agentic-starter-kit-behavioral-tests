@@ -25,26 +25,14 @@ def agent_url(target_agent_url: str) -> str:
     return target_agent_url
 
 
-_PAYLOAD_PATH = (
-    Path(__file__).parent.parent / "fixtures" / "adversarial" / "injection_payloads.yaml"
-)
-
-
-def load_injection_payloads() -> dict[str, list[dict[str, str]]]:
-    """Load injection payloads from fixtures/adversarial/injection_payloads.yaml."""
-    with open(_PAYLOAD_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def payloads_by_category(category: str) -> list[dict[str, str]]:
-    """Return payloads for a single category, for use with pytest.mark.parametrize."""
-    return load_injection_payloads().get(category, [])
-
-
 @pytest.fixture
 def injection_payloads() -> dict[str, list[dict[str, str]]]:
-    """All injection payloads keyed by category."""
-    return load_injection_payloads()
+    """Load injection payloads from fixtures/adversarial/injection_payloads.yaml."""
+    payload_path = (
+        Path(__file__).parent.parent / "fixtures" / "adversarial" / "injection_payloads.yaml"
+    )
+    with open(payload_path) as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture

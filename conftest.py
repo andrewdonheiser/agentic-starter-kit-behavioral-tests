@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 from typing import Any, AsyncGenerator, Callable, Coroutine
 
@@ -19,42 +18,11 @@ except ImportError:
     MLflowTraceClient = None  # type: ignore[misc,assignment]
 
 
-# Map agent markers to their URL env vars
-_AGENT_URL_MAP = {
-    "vanilla_python": "VANILLA_PYTHON_AGENT_URL",
-    "langgraph_react": "REACT_AGENT_URL",
-    "langgraph_rag": "RAG_AGENT_URL",
-    "autogen_mcp": "MCP_AGENT_URL",
-}
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    """When an agent marker is selected, auto-include cross-agent tests
-    and set AGENT_URL from the agent-specific env var."""
-    marker_expr = getattr(config.option, "markexpr", "")
-    if not marker_expr:
-        return
-
-    for marker, env_var in _AGENT_URL_MAP.items():
-        # Match marker as a standalone token, skip if negated
-        standalone = re.search(rf"(?<!\w){re.escape(marker)}(?!\w)", marker_expr)
-        negated = re.search(rf"\bnot\s+{re.escape(marker)}(?!\w)", marker_expr)
-        if standalone and not negated:
-            config.option.markexpr = (
-                f"({marker_expr}) or api_contract or adversarial"
-            )
-            if not os.environ.get("AGENT_URL"):
-                agent_url = os.environ.get(env_var)
-                if agent_url:
-                    os.environ["AGENT_URL"] = agent_url
-            break
-
-
 def pytest_report_header(config: pytest.Config) -> list[str]:
     """Display the target agent URL and MLflow experiment at the top of the test session."""
     lines = []
     urls = []
-    for var in ("AGENT_URL", "REACT_AGENT_URL", "RAG_AGENT_URL", "MCP_AGENT_URL", "VANILLA_PYTHON_AGENT_URL"):
+    for var in ("AGENT_URL", "REACT_AGENT_URL", "RAG_AGENT_URL", "MCP_AGENT_URL"):
         val = os.environ.get(var)
         if val:
             urls.append(f"{var}={val}")
@@ -80,10 +48,8 @@ def agent_url() -> str:
 def eval_config() -> dict[str, Any]:
     """Load threshold configuration from configs/thresholds.yaml."""
     config_path = Path(__file__).parent / "configs" / "thresholds.yaml"
-    if not config_path.exists():
-        pytest.skip(f"Threshold config not found: {config_path}")
-    with open(config_path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    with open(config_path) as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture
