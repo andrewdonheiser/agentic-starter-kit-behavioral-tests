@@ -1,0 +1,42 @@
+# Benchmark queries for Vanilla Python agent tool usage evaluation.
+#
+# Agent tools: search_price(brand), search_reviews(brand)
+# These queries test single-tool selection, multi-tool orchestration,
+# and no-tool-needed scenarios.
+
+queries:
+  - query: "What is the price of Nike shoes?"
+    expected_tools: ["search_price"]
+    expected_elements: ["price", "nike"]
+    difficulty: easy
+    category: price
+
+  - query: "How much does Adidas gear cost?"
+    expected_tools: ["search_price"]
+    expected_elements: ["price", "adidas"]
+    difficulty: easy
+    category: price
+
+  - query: "What are the reviews for Nike products?"
+    expected_tools: ["search_reviews"]
+    expected_elements: ["review", "nike"]
+    difficulty: easy
+    category: reviews
+
+  - query: "How do people rate Adidas running shoes?"
+    expected_tools: ["search_reviews"]
+    expected_elements: ["rating", "adidas"]
+    difficulty: easy
+    category: reviews
+
+  - query: "Compare Nike and Adidas prices and reviews"
+    expected_tools: ["search_price", "search_reviews"]
+    expected_elements: ["price", "review"]
+    difficulty: medium
+    category: multi_tool
+
+  - query: "Hello"
+    expected_tools: []
+    expected_elements: []
+    difficulty: easy
+    category: greeting

@@ -1,0 +1,28 @@
+# Benchmark: agentic-coherence
+# Tests response quality: plan coherence (structure, length, refusal detection)
+# and completeness (expected elements present in response).
+
+queries:
+  - query: "What is Red Hat OpenShift?"
+    expected_tools: []
+    expected_elements: ["openshift"]
+    difficulty: easy
+    category: factual
+
+  - query: "Compare Kubernetes and OpenShift for enterprise ML workloads"
+    expected_tools: []
+    expected_elements: ["kubernetes", "openshift"]
+    difficulty: medium
+    category: multi_part
+
+  - query: "Is it better to use vLLM or TGI for serving large language models in production and what trade-offs should I consider?"
+    expected_tools: []
+    expected_elements: ["model"]
+    difficulty: hard
+    category: ambiguous
+
+  - query: "Explain how to deploy a machine learning model on OpenShift AI using Jupyter notebooks"
+    expected_tools: []
+    expected_elements: ["openshift", "jupyter"]
+    difficulty: medium
+    category: multi_part

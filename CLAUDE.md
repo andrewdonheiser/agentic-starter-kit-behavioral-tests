@@ -175,6 +175,7 @@ Agent targets are always set via environment variables, never hardcoded:
 | `REACT_AGENT_URL` | `http://localhost:8000` | evals/langgraph_react/ |
 | `RAG_AGENT_URL` | `http://localhost:8001` | evals/agentic_rag/ |
 | `MCP_AGENT_URL` | `http://localhost:8002` | evals/autogen_mcp/ |
+| `VANILLA_PYTHON_AGENT_URL` | `http://localhost:8003` | evals/vanilla_python/ |
 
 When adding a new agent-specific eval suite, add a new env var and document it here.
 
@@ -246,6 +247,7 @@ agentic-eval-framework/
     langgraph_react/         # agent-specific evals (tool usage, quality)
     agentic_rag/             # RAG agent evals
     autogen_mcp/             # MCP agent evals
+    vanilla_python/          # Vanilla Python OpenAI Responses agent evals
   harness/                   # eval runner, scorers, reporters
     runner.py                # task execution engine (TaskConfig -> EvalResult)
     prompt_regression.py     # baseline save/load, version comparison

@@ -227,7 +227,7 @@ auto-enriches results with tool calls and token usage from MLflow traces. This i
 
 ---
 
-### 6. Vanilla Python OpenAI Responses Agent — CROSS-AGENT ONLY
+### 6. Vanilla Python OpenAI Responses Agent — TESTS WRITTEN, NOT REVIEWED
 
 | | |
 |---|---|
@@ -235,26 +235,27 @@ auto-enriches results with tool calls and token usage from MLflow traces. This i
 | **Path** | `agents/vanilla_python/openai_responses_agent/` |
 | **Tools** | `search_price(brand)`, `search_reviews(brand)` — dummy product data |
 | **MLflow tracing** | Yes (manual function wrapping) |
-| **Eval suite** | None (agent-specific). Cross-agent suites apply. |
-| **Env var** | `AGENT_URL` |
-| **Status** | Partially covered by cross-agent suites only |
+| **Eval suite** | `evals/vanilla_python/` (24 pytest tests) + 2 EvalHub benchmarks |
+| **Env var** | `VANILLA_PYTHON_AGENT_URL` |
+| **Status** | Tests written, not yet reviewed against live agent |
 
-**Current coverage (via cross-agent suites):**
-- API contract tests work against this agent
-- Adversarial safety tests work against this agent
-- No agent-specific tests
+**Test inventory:**
 
-**What should be tested (agent-specific):**
-- Tool selection: agent has **two tools** (`search_price`, `search_reviews`), making
-  tool selection more interesting than single-tool agents
-- Multi-tool orchestration: does it call both tools when appropriate?
-- Response synthesis: does it combine results from multiple tool calls?
+| Test file | Tests | What it checks |
+|-----------|-------|---------------|
+| `test_tool_usage.py` | 10 | Single-tool selection (price x2, reviews x2, adversarial x1), multi-tool orchestration (x2), no-tool for greeting, hallucinated tools, arg validity |
+| `test_response_quality.py` | 9 | Plan coherence, multi-tool synthesis, completeness for 7 queries with expected elements |
+| `test_reliability.py` | 3 (slow) | pass@8 single-tool (>= 85%), pass@8 multi-tool (>= 75%), pass@8 coherence (>= 75%) |
+| `test_cost_latency.py` | 2 | Single-tool latency under threshold, multi-tool latency under 1.5x threshold |
+| Cross-agent API contract | 7 | Schema, streaming, error handling (via `AGENT_URL`) |
+| Cross-agent adversarial | 4 | PII, API keys, dangerous ops (via `AGENT_URL`) |
 
-**Why no dedicated suite yet:**
-- Different tool set means golden queries from ReAct don't apply. Need product-specific
-  queries ("Compare prices for Nike and Adidas").
-- This is actually the most interesting agent for tool selection testing because it has
-  multiple tools with different purposes.
+**EvalHub benchmarks:**
+
+| Benchmark ID | Queries | Scorers |
+|-------------|---------|---------|
+| `vanilla-python-tool-use` | 6 (product-domain) | tool_selection, tool_sequence, hallucinated_tools, tool_call_validity |
+| `vanilla-python-full` | 11 (tool use + coherence + safety) | all |
 
 **Potential issues:**
 - Different tools means different golden queries, thresholds, and expected elements.
@@ -433,7 +434,7 @@ Results will change when you swap models.
 | AutoGen MCP | No* | No* | Yes (4) | Yes (3) | No | No | No | Written, not runnable |
 | LlamaIndex Websearch | Yes | Yes | No | No | No | No | Available | Cross-agent only |
 | CrewAI Websearch | Yes | Yes | No | No | No | No | Available | Cross-agent only |
-| Vanilla Python | Yes | Yes | No | No | No | No | Available | Cross-agent only |
+| Vanilla Python | Yes | Yes | Yes (10) | Yes (9) | Yes (3, slow) | Yes (2) | Available | Written, not reviewed |
 | DB Memory | Yes | Yes | No | No | No | No | No | Cross-agent only |
 | Human-in-the-Loop | Yes | Yes | No | No | No | No | No | Cross-agent only |
 | Langflow | No | No | No | No | No | No | No (Langfuse) | No coverage |
