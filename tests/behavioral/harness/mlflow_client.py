@@ -105,7 +105,7 @@ class MLflowTraceClient:
 
                     # Skip stale traces from before our request
                     if since_ms is not None:
-                        request_time = trace_row.get("request_time")
+                        request_time = trace_row.get("request_time") or trace_row.get("timestamp_ms")
                         if request_time is not None and int(request_time) < since_ms:
                             # Trace is from before our request, wait for new one
                             if attempt < max_retries - 1:
