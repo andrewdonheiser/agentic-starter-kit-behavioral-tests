@@ -8,18 +8,16 @@ Set AGENT_URL to target any deployed agent.
 from __future__ import annotations
 
 import os
-from typing import Any, AsyncGenerator
 
-import httpx
 import pytest
 
 
 @pytest.fixture
 def agent_url() -> str:
-    return os.environ.get("AGENT_URL", "http://localhost:8000")
-
-
-@pytest.fixture
-async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
-    async with httpx.AsyncClient() as client:
-        yield client
+    url = os.environ.get("AGENT_URL")
+    if not url:
+        pytest.fail(
+            "AGENT_URL env var is required for API contract tests. "
+            "Set it to the base URL of a running agent."
+        )
+    return url

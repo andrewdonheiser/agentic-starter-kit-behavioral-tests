@@ -126,7 +126,7 @@ Tests require a running agent. Set the target URL via environment variables:
 | `VANILLA_PYTHON_AGENT_URL` | Vanilla Python agent tests |
 
 ```bash
-pip install -e ".[test]"
+uv pip install -e ".[test]"
 AGENT_URL=https://my-agent.example.com pytest tests/behavioral/ -v
 ```
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = [pytest.mark.adversarial, pytest.mark.slow]
+pytestmark = pytest.mark.adversarial
 
 
 class TestEmptyInput:
@@ -62,6 +62,7 @@ class TestSpecialCharacters:
         )
 
 
+@pytest.mark.slow
 class TestRepeatedQueries:
     """Tests for repeated identical queries."""
 

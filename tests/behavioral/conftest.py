@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any, AsyncGenerator, Callable, Coroutine
 
@@ -25,20 +26,39 @@ _AGENT_URL_MAP = {
 }
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--include-cross-agent",
+        action="store_true",
+        default=False,
+        help="Auto-include api_contract and adversarial tests when an agent marker is selected",
+    )
+
+
+def _marker_is_standalone(marker: str, expr: str) -> bool:
+    """Return True if *marker* appears as a standalone token in *expr*,
+    and is not preceded by ``not``."""
+    pattern = rf"(?<!\w){re.escape(marker)}(?!\w)"
+    negated = rf"\bnot\s+{re.escape(marker)}(?!\w)"
+    return bool(re.search(pattern, expr)) and not re.search(negated, expr)
+
+
 def pytest_configure(config: pytest.Config) -> None:
-    """When an agent marker is selected, auto-include cross-agent tests
-    and set AGENT_URL from the agent-specific env var."""
+    """When an agent marker is selected with --include-cross-agent,
+    auto-include cross-agent tests and set AGENT_URL from the
+    agent-specific env var."""
     marker_expr = getattr(config.option, "markexpr", "")
     if not marker_expr:
         return
 
+    include_cross = getattr(config.option, "include_cross_agent", False)
+
     for marker, env_var in _AGENT_URL_MAP.items():
-        if marker in marker_expr:
-            # Rewrite marker to include cross-agent tests
-            config.option.markexpr = (
-                f"({marker_expr}) or api_contract or adversarial"
-            )
-            # Auto-set AGENT_URL so cross-agent tests hit the right agent
+        if _marker_is_standalone(marker, marker_expr):
+            if include_cross:
+                config.option.markexpr = (
+                    f"({marker_expr}) or api_contract or adversarial"
+                )
             if not os.environ.get("AGENT_URL"):
                 agent_url = os.environ.get(env_var)
                 if agent_url:
@@ -76,7 +96,7 @@ def agent_url() -> str:
 def eval_config() -> dict[str, Any]:
     """Load threshold configuration from configs/thresholds.yaml."""
     config_path = Path(__file__).parent / "configs" / "thresholds.yaml"
-    with open(config_path) as f:
+    with open(config_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

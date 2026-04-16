@@ -6,7 +6,7 @@ This guide explains how to add behavioral tests for an agent that doesn't have t
 
 - The agent is deployed and exposes the standard `/chat/completions` and `/health` endpoints
 - You know what tools the agent has (check its `src/` directory for `@tool` decorators or tool definitions)
-- Test dependencies are installed: `pip install -e ".[test]"`
+- Test dependencies are installed: `uv pip install -e ".[test]"`
 
 ## 1. Create the Directory Structure
 

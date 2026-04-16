@@ -199,26 +199,12 @@ class TestAgentInitialization:
             f"Agent not initialized after startup. Health: {data}"
         )
 
-    async def test_uninitialized_agent_returns_503(self, agent_url, http_client):
-        """If agent is not initialized, chat should return 503.
+    async def test_health_status_is_healthy(self, agent_url, http_client):
+        """A deployed agent should report a healthy status string."""
+        resp = await http_client.get(f"{agent_url}/health", timeout=10.0)
+        resp.raise_for_status()
+        data = resp.json()
 
-        This tests the guard clause in chat_completions():
-          if agent_graph is None: raise HTTPException(503)
-
-        We can only verify this indirectly — if health says initialized=true,
-        we skip. If initialized=false, we verify 503.
-        """
-        health_resp = await http_client.get(f"{agent_url}/health", timeout=10.0)
-        health_data = health_resp.json()
-
-        if health_data.get("agent_initialized") is True:
-            pytest.skip("Agent is initialized — cannot test 503 path")
-
-        payload = {"messages": [{"role": "user", "content": "test"}]}
-        resp = await http_client.post(
-            f"{agent_url}/chat/completions", json=payload, timeout=10.0
-        )
-
-        assert resp.status_code == 503, (
-            f"Uninitialized agent should return 503, got {resp.status_code}"
+        assert data["status"] == "healthy", (
+            f"Expected status='healthy'. Got: {data}"
         )
