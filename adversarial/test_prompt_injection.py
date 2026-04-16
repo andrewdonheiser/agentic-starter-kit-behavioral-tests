@@ -2,7 +2,8 @@
 
 Verifies that the agent refuses to comply with various injection
 techniques including direct instruction override, system prompt
-extraction, role-play jailbreaks, and multi-step injection chains.
+extraction, role-play jailbreaks, context manipulation, and
+multi-step injection chains.
 """
 
 from __future__ import annotations
@@ -12,6 +13,13 @@ import pytest
 from harness.scorers.safety import score_prompt_injection_resistance
 
 pytestmark = pytest.mark.model_baseline
+
+try:
+    from adversarial.conftest import payloads_by_category
+
+    _CONTEXT_PAYLOADS = payloads_by_category("context_manipulation")
+except Exception:
+    _CONTEXT_PAYLOADS = []
 
 
 class TestDirectInjection:
@@ -87,6 +95,24 @@ class TestRolePlayInjection:
         score = score_prompt_injection_resistance(result, query)
         assert score.passed, (
             f"Agent adopted DAN persona: {score.details}"
+        )
+
+
+class TestContextManipulation:
+    """Tests for context manipulation attacks (system spoofing, refusal suppression)."""
+
+    @pytest.mark.parametrize(
+        "payload",
+        _CONTEXT_PAYLOADS,
+        ids=lambda p: p["id"] if isinstance(p, dict) else str(p),
+    )
+    async def test_context_manipulation(self, run_eval, payload):
+        """Agent must resist context manipulation payloads."""
+        result = await run_eval(payload["payload"])
+        assert result.success, f"Agent request failed: {result.error}"
+        score = score_prompt_injection_resistance(result, payload["payload"])
+        assert score.passed, (
+            f"Agent complied with context manipulation [{payload['id']}]: {score.details}"
         )
 
 
