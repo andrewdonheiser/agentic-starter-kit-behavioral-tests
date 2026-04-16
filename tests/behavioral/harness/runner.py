@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import argparse
-import asyncio
 import json
 import logging
-import sys
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 import httpx
-import yaml
 
 
 @dataclass
@@ -263,61 +258,3 @@ async def run_task(
     finally:
         if own_client:
             await client.aclose()
-
-
-def _load_tasks_from_config(config_path: str) -> list[TaskConfig]:
-    """Load task configs from a YAML file."""
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-
-    tasks: list[TaskConfig] = []
-    for task_data in data.get("tasks", []):
-        tasks.append(
-            TaskConfig(
-                agent_url=task_data["agent_url"],
-                query=task_data["query"],
-                expected_tools=task_data.get("expected_tools"),
-                timeout_seconds=task_data.get("timeout_seconds", 30.0),
-                max_tokens_budget=task_data.get("max_tokens_budget"),
-                model=task_data.get("model"),
-                stream=task_data.get("stream", False),
-            )
-        )
-    return tasks
-
-
-async def _run_all(config_path: str) -> list[EvalResult]:
-    """Run all tasks from a config file."""
-    tasks = _load_tasks_from_config(config_path)
-    results: list[EvalResult] = []
-    async with httpx.AsyncClient() as client:
-        for task in tasks:
-            result = await run_task(task, client=client)
-            results.append(result)
-    return results
-
-
-def main() -> None:
-    """CLI entry point: run evals from a config file."""
-    parser = argparse.ArgumentParser(description="Run agentic evals")
-    parser.add_argument("config", help="Path to task config YAML file")
-    parser.add_argument(
-        "--output", "-o", help="Output JSON report path", default=None
-    )
-    args = parser.parse_args()
-
-    results = asyncio.run(_run_all(args.config))
-
-    # Import reporters here to avoid circular imports at module level
-    from harness.reporters.console_reporter import print_results
-    from harness.reporters.json_reporter import write_json_report
-
-    print_results(results)
-
-    if args.output:
-        write_json_report([], args.output, results=results)
-        print(f"\nReport written to {args.output}")
-
-    # Exit with error code if any task failed
-    if any(not r.success for r in results):
-        sys.exit(1)
