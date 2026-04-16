@@ -46,7 +46,9 @@ class EvalResult:
 
 def _parse_tool_call(tc: dict[str, Any]) -> dict[str, Any]:
     """Parse a single tool call dict into normalized {name, arguments} form."""
-    fn = tc.get("function", {})
+    fn = tc.get("function") or {}
+    if not isinstance(fn, dict):
+        fn = {}
     name = fn.get("name", "")
     raw_args = fn.get("arguments")
     if raw_args is None:
@@ -153,7 +155,7 @@ async def _run_streaming(
                     fn = tc.get("function", {})
                     if "name" in fn:
                         collected_tool_calls[idx]["function"]["name"] = fn["name"]
-                    if "arguments" in fn:
+                    if "arguments" in fn and fn["arguments"] is not None:
                         collected_tool_calls[idx]["function"]["arguments"] += fn[
                             "arguments"
                         ]
