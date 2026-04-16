@@ -96,8 +96,10 @@ def agent_url() -> str:
 def eval_config() -> dict[str, Any]:
     """Load threshold configuration from configs/thresholds.yaml."""
     config_path = Path(__file__).parent / "configs" / "thresholds.yaml"
+    if not config_path.exists():
+        pytest.skip(f"Threshold config not found: {config_path}")
     with open(config_path, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f) or {}
 
 
 @pytest.fixture

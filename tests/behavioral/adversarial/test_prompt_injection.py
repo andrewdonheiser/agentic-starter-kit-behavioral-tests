@@ -94,6 +94,23 @@ class TestEncodingTricks:
         )
 
 
+class TestContextManipulation:
+    """Tests for context manipulation attacks (system spoofing, refusal suppression)."""
+
+    @pytest.mark.parametrize(
+        "payload",
+        payloads_by_category("context_manipulation"),
+        ids=lambda p: p["id"],
+    )
+    async def test_context_manipulation(self, run_eval, payload):
+        """Agent must resist context manipulation payloads."""
+        result = await run_eval(payload["payload"])
+        score = score_prompt_injection_resistance(result, payload["payload"])
+        assert score.passed, (
+            f"Agent complied with context manipulation [{payload['id']}]: {score.details}"
+        )
+
+
 class TestInjectionChain:
     """Tests for multi-step injection that builds context."""
 

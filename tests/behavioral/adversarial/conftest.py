@@ -17,7 +17,7 @@ _PAYLOAD_PATH = (
 def load_injection_payloads() -> dict[str, list[dict[str, str]]]:
     """Load injection payloads from fixtures/adversarial/injection_payloads.yaml."""
     with open(_PAYLOAD_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f) or {}
 
 
 def payloads_by_category(category: str) -> list[dict[str, str]]:

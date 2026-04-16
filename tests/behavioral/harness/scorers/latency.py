@@ -10,12 +10,23 @@ from harness.scorers import Score
 
 def score_latency(result: EvalResult, max_seconds: float) -> Score:
     """Pass/fail check on response latency against a threshold."""
-    ratio = result.latency_seconds / max_seconds if max_seconds > 0 else 0.0
+    if max_seconds <= 0:
+        return Score(
+            name="latency",
+            value=0.0,
+            passed=False,
+            details={
+                "latency_seconds": result.latency_seconds,
+                "max_seconds": max_seconds,
+                "reason": "invalid threshold (max_seconds <= 0)",
+            },
+        )
+    ratio = result.latency_seconds / max_seconds
     passed = result.latency_seconds <= max_seconds
 
     return Score(
         name="latency",
-        value=1.0 if passed else max(0.0, 1.0 - (ratio - 1.0)),
+        value=1.0 if passed else min(1.0, max(0.0, 1.0 - (ratio - 1.0))),
         passed=passed,
         details={
             "latency_seconds": result.latency_seconds,
